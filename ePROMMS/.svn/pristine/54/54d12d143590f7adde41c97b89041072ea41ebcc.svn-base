@@ -1,0 +1,5 @@
+package kr.re.etri.lifeinfomatics.promes.util.sort;
+
+public interface SortInterface {
+	public String getSortKey(String type);
+}

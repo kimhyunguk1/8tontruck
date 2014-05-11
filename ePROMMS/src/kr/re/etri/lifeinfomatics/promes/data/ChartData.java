@@ -1,0 +1,230 @@
+package kr.re.etri.lifeinfomatics.promes.data;
+
+import javax.servlet.http.HttpSessionBindingEvent;
+
+import kr.re.etri.lifeinfomatics.promes.util.sort.SortInterface;
+
+public class ChartData implements SortInterface {
+
+	public int index = -1;
+
+	public String takenOrder;
+	public String title;
+	public int none = 0;
+	public int taken = 0;
+	public int unTaken = 0;
+	public int outTaken = 0;
+
+	public int total = 0;
+
+	public int totalNone = 0;
+	public int totalTaken = 0;
+	public int totalUntaken = 0;
+	public int totalOuttaken = 0;
+
+	public ChartData() {
+
+	}
+
+	public ChartData(String takenOrder) {
+		this.takenOrder = takenOrder;
+	}
+
+	public String getTakenOrder() {
+		return takenOrder;
+	}
+
+	public void setTakenOrder(String takenOrder) {
+		this.takenOrder = takenOrder;
+	}
+
+	public int getNone() {
+		return none;
+	}
+
+	public void setNone(int none) {
+		this.none = none;
+	}
+
+	public int getTaken() {
+		return taken;
+	}
+
+	public void setTaken(int taken) {
+		this.taken = taken;
+	}
+
+	public int getUnTaken() {
+		return unTaken;
+	}
+
+	public void setUnTaken(int unTaken) {
+		this.unTaken = unTaken;
+	}
+
+	public int getOutTaken() {
+		return outTaken;
+	}
+
+	public void setOutTaken(int outTaken) {
+		this.outTaken = outTaken;
+	}
+
+	public void setStatusCount(String status) {
+		if (status.equals(Define.TAKEN_SATUS_NONE)) {
+			this.setNone(getNone() + 1);
+		}
+		else if (status.equals(Define.TAKEN_SATUS_PRETAKEN)) {
+			this.setTaken(getTaken() + 1);
+		}
+		else if (status.equals(Define.TAKEN_SATUS_FINISHTAKEN)) {
+			this.setTaken(getTaken() + 1);
+		}
+		else if (status.equals(Define.TAKEN_SATUS_UNTAKEN)) {
+			this.setUnTaken(getUnTaken() + 1);
+		}
+		else if (status.equals(Define.TAKEN_SATUS_PREUNTAKEN)) {
+			this.setUnTaken(getUnTaken() + 1);
+		}
+		else if (status.equals(Define.TAKEN_SATUS_FINISHUNTAKEN)) {
+			this.setUnTaken(getUnTaken() + 1);
+		}
+		else if (status.equals(Define.TAKEN_SATUS_PREOUTTAKEN)) {
+			this.setOutTaken(getOutTaken() + 1);
+		}
+		else if (status.equals(Define.TAKEN_SATUS_FINISHOUTTAKEN)) {
+			this.setOutTaken(getOutTaken() + 1);
+		}
+		else if (status.equals(Define.TAKEN_SATUS_SMSOUTTAKEN)) {
+			this.setOutTaken(getOutTaken() + 1);
+		}
+		else {
+			this.setUnTaken(getUnTaken() + 1);
+		}
+	}
+
+	public void setStatusCount(String status, int num) {
+		if (status.equals(Define.TAKEN_SATUS_NONE)) {
+			this.setNone(num);
+		}
+		else if (status.equals(Define.TAKEN_SATUS_PRETAKEN)) {
+			this.setTaken(num);
+		}
+		else if (status.equals(Define.TAKEN_SATUS_FINISHTAKEN)) {
+			this.setTaken(num);
+		}
+		else if (status.equals(Define.TAKEN_SATUS_UNTAKEN)) {
+			this.setUnTaken(num);
+		}
+		else if (status.equals(Define.TAKEN_SATUS_PREUNTAKEN)) {
+			this.setUnTaken(num);
+		}
+		else if (status.equals(Define.TAKEN_SATUS_FINISHUNTAKEN)) {
+			this.setUnTaken(num);
+		}
+		else if (status.equals(Define.TAKEN_SATUS_PREOUTTAKEN)) {
+			this.setOutTaken(num);
+		}
+		else if (status.equals(Define.TAKEN_SATUS_FINISHOUTTAKEN)) {
+			this.setOutTaken(num);
+		}
+		else if (status.equals(Define.TAKEN_SATUS_SMSOUTTAKEN)) {
+			this.setOutTaken(num);
+		}
+		else {
+			this.setUnTaken(num);
+		}
+	}
+
+	public int getTotalNone() {
+		return totalNone;
+	}
+
+	public void setTotalNone(int totalNone) {
+		this.totalNone = totalNone;
+	}
+
+	public int getTotalTaken() {
+		return totalTaken;
+	}
+
+	public void setTotalTaken(int totalTaken) {
+		this.totalTaken = totalTaken;
+	}
+
+	public int getTotalUntaken() {
+		return totalUntaken;
+	}
+
+	public void setTotalUntaken(int totalUntaken) {
+		this.totalUntaken = totalUntaken;
+	}
+
+	public int getTotalOuttaken() {
+		return totalOuttaken;
+	}
+
+	public void setTotalOuttaken(int totalOuttaken) {
+		this.totalOuttaken = totalOuttaken;
+	}
+
+	public int getTotal() {
+		return total;
+	}
+
+	public void setTotal(int total) {
+		this.total = total;
+	}
+
+	public String getTitle() {
+		return title;
+	}
+
+	public void setTitle(String title) {
+		this.title = title;
+	}
+
+	public int getIndex() {
+		return index;
+	}
+
+	public void setIndex(int index) {
+		this.index = index;
+	}
+
+	public int getPercent(String type) {
+		if (type.equals(Define.TAKEN_SATUS_NONE)) {
+			return (int) (this.none / this.total * 100);
+		}
+		else if (type.equals(Define.TAKEN_SATUS_PRETAKEN)) {
+			return (int) (this.taken / this.total * 100);
+		}
+		else if (type.equals(Define.TAKEN_SATUS_PREUNTAKEN)) {
+			return (int) (this.unTaken / this.total * 100);
+		}
+		else if (type.equals(Define.TAKEN_SATUS_FINISHOUTTAKEN)) {
+			return (int) (this.outTaken / this.total * 100);
+		}
+		return 0;
+	}
+
+	@Override
+	public String getSortKey(String type) {
+		if (this.index < 10) {
+			return "0" + this.index;
+		}
+		return "" + this.index;
+	}
+
+	@Override
+	public void valueBound(HttpSessionBindingEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void valueUnbound(HttpSessionBindingEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+}

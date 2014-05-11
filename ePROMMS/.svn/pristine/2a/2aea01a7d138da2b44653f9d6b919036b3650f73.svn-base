@@ -1,0 +1,287 @@
+<%@page contentType="text/html; charset=euc-kr"%>
+<%@page import="kr.re.etri.lifeinfomatics.promes.data.PrescriptionInfo"%>
+<%@page import="kr.re.etri.lifeinfomatics.promes.data.UserInfo"%>
+<%PrescriptionInfo prescriptionInfo = (PrescriptionInfo) request.getAttribute("prescriptionInfo");%>
+<%ArrayList prescriptions = (ArrayList) request.getAttribute("prescriptions");%>
+<%UserInfo userInfo = (UserInfo) request.getAttribute("userInfo");%>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<%@page import="java.util.ArrayList"%>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>e-PROMMS 2.0 Detail Schedule</title>
+<link href="/PromesService/css/style.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript">
+<!--
+function MM_preloadImages() { //v3.0
+  var d=document; if(d.images){ if(!d.MM_p) d.MM_p=new Array();
+    var i,j=d.MM_p.length,a=MM_preloadImages.arguments; for(i=0; i<a.length; i++)
+    if (a[i].indexOf("#")!=0){ d.MM_p[j]=new Image; d.MM_p[j++].src=a[i];}}
+}
+function MM_swapImgRestore() { //v3.0
+  var i,x,a=document.MM_sr; for(i=0;a&&i<a.length&&(x=a[i])&&x.oSrc;i++) x.src=x.oSrc;
+}
+
+function MM_findObj(n, d) { //v4.01
+  var p,i,x;  if(!d) d=document; if((p=n.indexOf("?"))>0&&parent.frames.length) {
+    d=parent.frames[n.substring(p+1)].document; n=n.substring(0,p);}
+  if(!(x=d[n])&&d.all) x=d.all[n]; for (i=0;!x&&i<d.forms.length;i++) x=d.forms[i][n];
+  for(i=0;!x&&d.layers&&i<d.layers.length;i++) x=MM_findObj(n,d.layers[i].document);
+  if(!x && d.getElementById) x=d.getElementById(n); return x;
+}
+
+function MM_swapImage() { //v3.0
+  var i,j=0,x,a=MM_swapImage.arguments; document.MM_sr=new Array; for(i=0;i<(a.length-2);i+=3)
+   if ((x=MM_findObj(a[i]))!=null){document.MM_sr[j++]=x; if(!x.oSrc) x.oSrc=x.src; x.src=a[i+2];}
+}
+
+function MM_openBrWindow(theURL,winName,features) {
+  var mainForm = document.form;
+  window.open(theURL,winName,features);
+}
+
+function initsize() {
+	//dosageInfoPage.resizeTo(dosageInfoPage.document.body.scrollWidth, dosageInfoPage.document.body.scrollHeight);
+	var _height = document.getElementById('dosageInfoPage').contentWindow.document.body.scrollHeight;
+    document.getElementById('dosageInfoPage').height=_height;
+	parent.initsize();
+}
+
+function init(){
+	<%if(prescriptionInfo != null){
+		if(prescriptionInfo.getDetailSchedule().equals("0")){%>
+			alert("세부 스케줄이 등록되지 않았습니다.");
+		<%}%>
+		setPrescription('<%=prescriptionInfo.getId()%>', '<%=prescriptionInfo.getMember_id()%>', '<%=userInfo.getName()%>', '<%=prescriptionInfo.getTotalDays()%>', '<%=prescriptionInfo.getFrequency()%>', '<%=prescriptionInfo.getPillBox_id()%>', '<%=prescriptionInfo.getDisease()%>', '<%=prescriptionInfo.getHospital()%>');
+	<%}%>
+}
+
+function setPrescription(prescriptionId, userId, userName, totalDays, frequency, pillBoxId, disease, hospital){
+	var mainForm = document.form;
+	mainForm._prescriptionId.value = prescriptionId;
+	mainForm._userId.value = userId;
+	mainForm._hospital.value = hospital;
+	//mainForm._userName.value = userName;
+	//mainForm._totalDays.value = totalDays;
+	//mainForm._frequency.value = frequency;
+	//mainForm._pillBoxId.value = pillBoxId;
+	//mainForm._disease.value = disease;
+	mainForm.cmd.value = 'loadDetailSchedulePage';
+	mainForm.target = "dosageInfoPage";
+	mainForm.submit();
+}
+
+function loadSearch(){
+	parent.changeMenu('list');
+}
+
+function getPrescriptionId(){
+	<%if(prescriptionInfo != null){%>
+		return '<%=prescriptionInfo.getId()%>'
+	<%}%>
+	return "";
+}
+
+function getUserId(){
+	<%if(userInfo != null){%>
+		return '<%=userInfo.getId()%>'
+	<%}%>
+	return "";
+}
+
+function getPrescriptionId(){
+	<%if(prescriptionInfo != null){%>
+		return '<%=prescriptionInfo.getId()%>'
+	<%}%>
+	return "";
+}
+
+function getHospital(){
+	<%if(prescriptionInfo != null){%>
+		return '<%=prescriptionInfo.getHospital()%>'
+	<%}%>
+	return "";
+}
+
+function getType(){
+	return parent.getType();	
+}
+
+function changeDosage(value){
+	<%if(prescriptionInfo != null){%>
+		var tmpHtml = "";
+		if(value == '1'){
+			var url = '/PromesService/PromesServerServlet';
+			url += '?cmd=loadDetailSchedulePage';
+			url += '&_prescriptionId=' + '<%=prescriptionInfo.getId()%>';
+			url += '&_userId=' + '<%=prescriptionInfo.getMember_id()%>';
+			url += '&_hospital=' + '<%=prescriptionInfo.getHospital()%>';
+			tmpHtml = "<iframe name=\"dosageInfoPage\" id=\"dosageInfoPage\" src=\"" + url + "\" frameborder=\"0\" scrolling=\"NO\" framespacing=\"0\" width=\"100%\" onload=\"javascript:initsize();\"></iframe>";
+			saveDiv.innerHTML = "";
+		}else if(value == '2'){
+			var url = '/PromesService/PromesServerServlet';
+			url += '?cmd=loadChartPage';
+			url += '&_prescriptionId=' + '<%=prescriptionInfo.getId()%>';
+			url += '&_userId=' + '<%=prescriptionInfo.getMember_id()%>';
+			url += '&_hospital=' + '<%=prescriptionInfo.getHospital()%>';
+			url += '&_type=' + parent.getType();
+			tmpHtml = "<iframe name=\"dosageInfoPage\" id=\"dosageInfoPage\" src=\"" + url + "\" frameborder=\"0\" scrolling=\"NO\" framespacing=\"0\" width=\"100%\" onload=\"javascript:initsize();\"></iframe>";
+			saveDiv.innerHTML = "";
+		}else if(value == '3'){
+			var url = '/PromesService/home/common/dosageReport.jsp';
+			tmpHtml = "<iframe name=\"dosageInfoPage\" id=\"dosageInfoPage\" src=\"" + url + "\" frameborder=\"0\" scrolling=\"NO\" framespacing=\"0\" width=\"100%\" onload=\"javascript:initsize();\"></iframe>";
+			saveDiv.innerHTML = "<td width=\"74\" valign=\"bottom\"><a href=\"javascript:saveReport();\"><img src=\"/PromesService/images/common/bt_save.gif\" width=\"74\" height=\"22\" id=\"Image44\" border=\"0\" onmouseover=\"MM_swapImage('Image44','','/PromesService/images/common/bt_save_.gif',1)\" onmouseout=\"MM_swapImgRestore()\" /></a></td>";
+		}
+		dosageDiv.innerHTML = tmpHtml;
+	<%}%>
+}
+
+function changePrescription(){
+	var mainForm = document.form;
+	parent.changeMenu("dosage");
+	mainForm.cmd.value = 'loadPatientDosagePage';
+	var tmp = mainForm._prescriptionIdSel.value;
+	tmp = tmp.split(":");
+	mainForm._prescriptionId.value = tmp[0];
+	mainForm._hospital.value = tmp[1];
+	mainForm._userId.value = parent.getId();
+	mainForm.target = "patientMainPage";
+	mainForm.submit();
+	this.close();
+}
+
+function saveReport(){
+	var mainForm = document.form;
+	mainForm._prescriptionId.value = '<%=prescriptionInfo.getId()%>';
+	mainForm._userId.value = '<%=prescriptionInfo.getMember_id()%>';
+	mainForm._hospital.value = '<%=prescriptionInfo.getHospital()%>';
+
+	mainForm.cmd.value = 'saveReportPage';
+	mainForm.submit();
+}
+
+//-->
+</script>
+</head>
+<body onload="init();MM_preloadImages('/PromesService/images/common/bt_individual_.gif','/PromesService/images/common/bt_logout_.gif','/PromesService/images/common/bt_inquiry2_.gif','/PromesService/images/common/bt_graph_.gif')">
+<form name="form" method="post" action="/PromesService/PromesServerServlet">
+<input name="cmd" type="hidden" value=""/>
+<input name="_prescriptionId" type="hidden" value=""/>
+<input name="_userId" type="hidden" value=""/>
+<input name="_hospital" type="hidden" value=""/>
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+   <tr>
+      <td><table width="794" border="0" cellspacing="0" cellpadding="0">
+        <tr>
+          <td height="35" background="/PromesService/images/prescription/main_title_c.gif"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+            <tr>
+              <td width="150" align="right">&nbsp;</td>
+              <td width="20" valign="bottom"><input type="radio" name="_dosageType" id="_dosageType" value="일별정보" checked="true" onclick="javascript:changeDosage('1');" <%if(prescriptionInfo == null){ %> disabled="true" <%} %> /></td>
+              <td width="80" valign="bottom">일별정보</td>
+              <td width="20" valign="bottom"><input type="radio" name="_dosageType" id="_dosageType" value="순응률" onclick="javascript:changeDosage('2');" <%if(prescriptionInfo == null){ %> disabled="true" <%} %>  /></td>
+              <td width="80" valign="bottom">순응률</td>
+              <td width="20" valign="bottom"><input type="radio" name="_dosageType" id="_dosageType" value="보고서 출력" onclick="javascript:changeDosage('3');" <%if(prescriptionInfo == null){ %> disabled="true" <%} %>  /></td>
+              <td valign="bottom">보고서 출력</td>
+              </tr>
+          </table></td>
+        </tr>
+      </table></td>
+   </tr>
+   <tr>
+      <td><table width="756" border="0" cellspacing="" cellpadding="0">
+	   <tr>
+		  <td><table width="100%" border="0" cellspacing="0" cellpadding="0">
+			<tr>
+				<td height="25"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+				<tr>
+					<td width="4" valign="middle"><img src="/PromesService/images/common/icon_08.gif" width="4" height="7" id="Image4" border="0" onmouseover="MM_swapImage('Image9','','/PromesService/images/common/bt_list_.gif',1)"/></td>
+					<td width="206" class="td_table08" valign="bottom">&nbsp;처방번호 : <select name="_prescriptionIdSel" class="select_white" style="width:120px" onchange="javascript:changePrescription()">
+					<%
+              		if(prescriptions != null && prescriptions.size() > 0){
+              			for(int i = 0; i < prescriptions.size() ;i++){ 
+              				PrescriptionInfo tmpPrescription = (PrescriptionInfo)prescriptions.get(i);
+              				if(prescriptionInfo.getId().equals(tmpPrescription.getId()) && prescriptionInfo.getHospital().equals(tmpPrescription.getHospital())){%>
+    				    	<option value="<%=tmpPrescription.getId()%>:<%=tmpPrescription.getHospital()%>" selected="true"><%=tmpPrescription.getId()%></option>              			
+              				<%}else{%>
+              				<option value="<%=tmpPrescription.getId()%>:<%=tmpPrescription.getHospital()%>"><%=tmpPrescription.getId()%></option>
+              				<%}
+						} 
+              		}%>
+					</select></td>
+					<%if(prescriptionInfo != null){ %>
+					<td width="4" valign="middle"><img src="/PromesService/images/common/icon_08.gif" width="4" height="7" id="Image4" border="0" onmouseover="MM_swapImage('Image9','','/PromesService/images/common/bt_list_.gif',1)"/></td>
+					<td width="174" class="td_table08" valign="bottom">&nbsp;약상자 : <%=prescriptionInfo.getPillBox_id() %>(<%=prescriptionInfo.getPillBox_type() %>)</td>
+					<td width="4" valign="middle"><img src="/PromesService/images/common/icon_08.gif" width="4" height="7" id="Image4" border="0" onmouseover="MM_swapImage('Image9','','/PromesService/images/common/bt_list_.gif',1)"/></td>
+					<td width="106" class="td_table08" valign="bottom">&nbsp;복용일수 : <%=prescriptionInfo.getTotalDays() %>일</td>
+					<td width="4" valign="middle"><img src="/PromesService/images/common/icon_08.gif" width="4" height="7" id="Image4" border="0" onmouseover="MM_swapImage('Image9','','/PromesService/images/common/bt_list_.gif',1)"/></td>
+					<td width="146" class="td_table08" valign="bottom">&nbsp;복용횟수 : <%=prescriptionInfo.getFrequency() %>회/일</td>
+					<td>&nbsp;</td>
+					<%}else{ %>
+					<td width="4" valign="middle"><img src="/PromesService/images/common/icon_08.gif" width="4" height="7" id="Image4" border="0" onmouseover="MM_swapImage('Image9','','/PromesService/images/common/bt_list_.gif',1)"/></td>
+					<td width="174" class="td_table08" valign="bottom">&nbsp;약상자 : </td>
+					<td width="4" valign="middle"><img src="/PromesService/images/common/icon_08.gif" width="4" height="7" id="Image4" border="0" onmouseover="MM_swapImage('Image9','','/PromesService/images/common/bt_list_.gif',1)"/></td>
+					<td width="106" class="td_table08" valign="bottom">&nbsp;복용일수 : </td>
+					<td width="4" valign="middle"><img src="/PromesService/images/common/icon_08.gif" width="4" height="7" id="Image4" border="0" onmouseover="MM_swapImage('Image9','','/PromesService/images/common/bt_list_.gif',1)"/></td>
+					<td width="146" class="td_table08" valign="bottom">&nbsp;복용횟수 : </td>
+					<td>&nbsp;</td>
+					<%} %>
+				</tr>
+				</table></td>
+			</tr>
+			<tr>
+				<td height="1" bgcolor="#ececec"></td>
+			</tr>
+			<tr>
+				<td height="25"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+				<tr>
+					<%if(prescriptionInfo != null){ %>
+					<td width="4" valign="middle"><img src="/PromesService/images/common/icon_08.gif" width="4" height="7" id="Image4" border="0" onmouseover="MM_swapImage('Image9','','/PromesService/images/common/bt_list_.gif',1)"/></td>
+					<td width="206" class="td_table08" valign="bottom">&nbsp;복용시작일 : <%=prescriptionInfo.getStartDateKor() %>
+					<td width="4" valign="middle"><img src="/PromesService/images/common/icon_08.gif" width="4" height="7" id="Image4" border="0" onmouseover="MM_swapImage('Image9','','/PromesService/images/common/bt_list_.gif',1)"/></td>
+					<td class="td_table08" valign="bottom">&nbsp;질병명 : <%=prescriptionInfo.getDisease() %>
+					<%}else{ %>
+					<td width="4" valign="middle"><img src="/PromesService/images/common/icon_08.gif" width="4" height="7" id="Image4" border="0" onmouseover="MM_swapImage('Image9','','/PromesService/images/common/bt_list_.gif',1)"/></td>
+					<td width="206" class="td_table08" valign="bottom">&nbsp;복용시작일 : 
+					<td width="4" valign="middle"><img src="/PromesService/images/common/icon_08.gif" width="4" height="7" id="Image4" border="0" onmouseover="MM_swapImage('Image9','','/PromesService/images/common/bt_list_.gif',1)"/></td>
+					<td class="td_table08" valign="bottom">&nbsp;질병명 : 
+					<%} %>
+				</tr>
+				</table></td>
+			</tr>
+			<tr>
+				<td height="1" bgcolor="#ececec"></td>
+			</tr>
+		 </table></td>
+	   </tr>
+	   <tr>
+			<td height="15">&nbsp;</td>
+	   </tr>
+	   <tr>
+		  <td>
+		  	<div id="dosageDiv">
+		   	  <iframe name="dosageInfoPage" id="dosageInfoPage" src="/PromesService/PromesServerServlet?cmd=loadDetailSchedulePage" frameborder="0" scrolling="NO" framespacing="0" width="100%" onload="javascript:initsize();"></iframe>
+			</div>
+		  </td>
+	   </tr>
+	   <tr>
+	     <td height="15" ></td>
+	   </tr>
+	   <tr>
+	   	 <td><table width="100%" border="0" cellspacing="0" cellpadding="0">
+	        <tr>
+	          <td>&nbsp;</td>
+	          <td width="74" valign="bottom"><div id="saveDiv"></div></td>
+	          <td width="5">&nbsp;</td>
+	          <td width="74" valign="bottom"><a href="javascript:loadSearch();"><img src="/PromesService/images/common/bt_list.gif" width="74" height="22" id="Image4" border="0" onmouseover="MM_swapImage('Image4','','/PromesService/images/common/bt_list_.gif',1)" onmouseout="MM_swapImgRestore()" /></a></td>
+	        </tr>
+	     </table></td>
+	   </tr>
+	   <tr>
+	     <td height="50">&nbsp;</td>
+	   </tr>
+	</table></td>
+   </tr>
+</table></td>
+ </form>
+</body>
+</html>

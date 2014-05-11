@@ -1,0 +1,42 @@
+package kr.re.etri.lifeinfomatics.promes.cmd;
+
+import java.util.ArrayList;
+
+import javax.servlet.http.HttpServletRequest;
+
+import kr.re.etri.lifeinfomatics.promes.cmd.common.Command;
+import kr.re.etri.lifeinfomatics.promes.cmd.common.CommandException;
+import kr.re.etri.lifeinfomatics.promes.mgr.PillBoxManager;
+import kr.re.etri.lifeinfomatics.promes.util.Log;
+
+public class CheckUsePillBoxCommand implements Command{
+
+	private String next = "";
+	
+	public CheckUsePillBoxCommand(String next){
+		this.next = next;
+		
+	}
+	
+	public String execute(HttpServletRequest req) throws CommandException {
+		try {
+			String delPillBoxId = req.getParameter("_delPiiBoxId");
+			String delBool = req.getParameter("_delBool");
+			
+			ArrayList<String> tmpPillBoxs = new ArrayList<String>();
+			tmpPillBoxs.add(delPillBoxId);
+			
+			boolean result = PillBoxManager.getInstance().checkTakePillBoxs(tmpPillBoxs);
+
+			req.setAttribute("result", String.valueOf(result));
+			req.setAttribute("beforePage", "DelPillBox");
+			req.setAttribute("delBool", delBool);
+			return next;
+		} catch (Exception ex) {
+			Log.out.error(ex, ex);
+			req.setAttribute("message", ex.getMessage());
+			return "home/error.jsp";
+		}
+	}
+
+}

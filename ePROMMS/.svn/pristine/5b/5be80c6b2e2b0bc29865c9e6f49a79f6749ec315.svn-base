@@ -1,0 +1,333 @@
+<%@page contentType="text/html; charset=euc-kr"%>
+<%@page import="java.util.ArrayList"%>
+<%@page import="kr.re.etri.lifeinfomatics.promes.data.PrescriptionInfo"%>
+<%@page import="java.util.Hashtable"%>
+<%ArrayList prescriptionList = (ArrayList) request.getAttribute("prescriptionList");%>
+<%String pageIdx = (String)request.getAttribute("pageIdx");%>
+<%String maxPageIdx = (String)request.getAttribute("maxPageIdx");%>
+<%String sortType = (String)request.getAttribute("sortType");%>
+<%String sortCourse = (String)request.getAttribute("sortCourse");%>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<%@page import="kr.re.etri.lifeinfomatics.promes.util.Util"%>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>e-PROMMS 2.0</title>
+<link href="/PromesService/css/style.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript">
+<!--
+function MM_preloadImages() { //v3.0
+  var d=document; if(d.images){ if(!d.MM_p) d.MM_p=new Array();
+    var i,j=d.MM_p.length,a=MM_preloadImages.arguments; for(i=0; i<a.length; i++)
+    if (a[i].indexOf("#")!=0){ d.MM_p[j]=new Image; d.MM_p[j++].src=a[i];}}
+}
+function MM_swapImgRestore() { //v3.0
+  var i,x,a=document.MM_sr; for(i=0;a&&i<a.length&&(x=a[i])&&x.oSrc;i++) x.src=x.oSrc;
+}
+
+function MM_findObj(n, d) { //v4.01
+  var p,i,x;  if(!d) d=document; if((p=n.indexOf("?"))>0&&parent.frames.length) {
+    d=parent.frames[n.substring(p+1)].document; n=n.substring(0,p);}
+  if(!(x=d[n])&&d.all) x=d.all[n]; for (i=0;!x&&i<d.forms.length;i++) x=d.forms[i][n];
+  for(i=0;!x&&d.layers&&i<d.layers.length;i++) x=MM_findObj(n,d.layers[i].document);
+  if(!x && d.getElementById) x=d.getElementById(n); return x;
+}
+
+function MM_swapImage() { //v3.0
+  var i,j=0,x,a=MM_swapImage.arguments; document.MM_sr=new Array; for(i=0;i<(a.length-2);i+=3)
+   if ((x=MM_findObj(a[i]))!=null){document.MM_sr[j++]=x; if(!x.oSrc) x.oSrc=x.src; x.src=a[i+2];}
+}
+
+function loadModifyPrescription(value, hospital){
+	var mainForm = document.form;
+	parent.changeMenu("modify");
+	mainForm.cmd.value = 'loadModifyPrescriptionPage';
+	mainForm._prescriptionId.value = value;
+	mainForm._hospital.value = hospital;
+	mainForm._type.value = parent.getType();
+	mainForm._userId.value = parent.getId();
+	mainForm.target = "patientMainPage";
+	mainForm.submit();
+}
+
+function deletePrescription(value){
+	parent.deletePrescription(value);
+}
+
+function loadPatientDosagePage(value1, hospital){
+	parent.changeMenu("dosage");
+	var mainForm = document.form;
+	mainForm.cmd.value = 'loadPatientDosagePage';
+	mainForm._prescriptionId.value = value1;
+	mainForm._hospital.value = hospital;
+	mainForm._userId.value = parent.getId();
+	mainForm.target = "patientMainPage";
+	mainForm.submit();
+}
+
+function initsize() {
+	sortTableDiv();
+	parent.initsize();
+}
+
+function changePage(idx, value){
+	var mainForm = document.form;
+	mainForm.cmd.value = 'searchPrescriptionPage';
+	mainForm._type.value = parent.getType();
+	mainForm._id.value = parent.getId();
+	mainForm._loginId.value = parent.getLoginId();
+	mainForm._id.value = mainForm._loginId.value;
+	var pageIdx = '<%=pageIdx%>';
+	if(value == null){
+		pageIdx = idx;
+	}else{
+		if(value == 'sub'){
+			pageIdx = Number(pageIdx) - 1;
+		}else{
+			pageIdx = Number(pageIdx) + 1;
+		}
+	}
+	mainForm._pageIdx.value = pageIdx;
+	<%if(sortType != null && !sortType.equals("")){%>
+		mainForm._sortType.value = '<%=sortType%>';
+	<%}%>
+	<%if(sortType != null && !sortType.equals("")){%>
+		mainForm._sortCourse.value = '<%=sortCourse%>';
+	<%}%>
+	mainForm.target = "patientPrescriptionListPage";
+	mainForm.submit();
+}
+
+function sortTable(type){
+	var mainForm = document.form;
+	mainForm.cmd.value = 'searchPrescriptionPage';
+	mainForm._type.value = parent.getType();
+	mainForm._sortType.value = type;
+	mainForm._loginId.value = parent.getLoginId();
+	mainForm._id.value = mainForm._loginId.value;
+	mainForm._sortCourse.value = "UP";
+	<%if(sortType != null && !sortType.equals("")){%>
+		if(type == '<%=sortType%>'){
+			<%if(sortCourse != null && !sortCourse.equals("")){
+				if(sortCourse.equals("UP")){%>
+					mainForm._sortCourse.value = "DOWN";
+				<%}%>
+			<%}%>
+		}
+	<%}%>
+	mainForm._pageIdx.value = '<%=pageIdx%>';
+	mainForm.target = "patientPrescriptionListPage";
+	mainForm.submit();
+}
+
+function sortTableDiv(){
+	<%
+	if(sortType != null && !sortType.equals("")){
+	%>
+		var tmpHtml = "";
+		<%if(sortCourse.equals("UP")){%>
+			tmpHtml = "<img src=\"/PromesService/images/common/icon_07_b.gif\" width=\"7\" height=\"12\" />";
+		<%}else{%>
+			tmpHtml = "<img src=\"/PromesService/images/common/icon_07_a.gif\" width=\"7\" height=\"12\" />";
+		<%}
+		if(sortType.equals("ID")){%>
+			tableDiv[0].innerHTML = tmpHtml;
+		<%}else{%>
+			tableDiv[0].innerHTML = "";
+		<%}
+		if(sortType.equals("STARTDATE")){%>
+			tableDiv[1].innerHTML = tmpHtml;
+		<%}else{%>
+			tableDiv[1].innerHTML = "";
+		<%}
+		if(sortType.equals("TOTALDAYS")){%>
+			tableDiv[2].innerHTML = tmpHtml;
+		<%}else{%>
+			tableDiv[2].innerHTML = "";
+		<%}
+		if(sortType.equals("STATUS")){%>DISEASE
+			tableDiv[3].innerHTML = tmpHtml;
+		<%}else {%>
+			tableDiv[3].innerHTML = "";
+		<%}
+		if(sortType.equals("DISEASE")){%>
+			tableDiv[4].innerHTML = tmpHtml;
+		<%}else{%>
+			tableDiv[4].innerHTML = "";
+		<%}%>
+	<%}else{%>
+		tableDiv[0].innerHTML = "";
+		tableDiv[1].innerHTML = "";
+		tableDiv[2].innerHTML = "";
+		tableDiv[3].innerHTML = "";
+		tableDiv[4].innerHTML = "";
+	<%}%>
+}
+
+//-->
+</script>
+</head>
+<body onload="javascript:initsize();MM_preloadImages('/PromesService/images/common/bt_individual_.gif','/PromesService/images/common/bt_logout_.gif','/PromesService/images/doctor/left_menu_a_.gif','/PromesService/images/doctor/left_menu_c_.gif','/PromesService/images/common/bt_inquiry_.gif','/PromesService/images/common/bt_revision2_.gif','/PromesService/images/common/bt_internal_.gif','/PromesService/images/common/bt_delete2_.gif')">
+<form name="form" method="post" action="/PromesService/PromesServerServlet">
+<input name="cmd" type="hidden" value=""/>
+<input name="_prescriptionId" type="hidden" value=""/>
+<input name="_hospital" type="hidden" value=""/>
+<input name="_userId" type="hidden" value=""/>
+<input name="_id" type="hidden" value=""/>
+<input name="_type" type="hidden" value=""/>
+<input name="_pageIdx" type="hidden" value=""/>
+<input name="_sortType" type="hidden" value=""/>
+<input name="_sortCourse" type="hidden" value=""/>
+<input name="_loginId" type="hidden" value=""/>
+<table width="756" border="0" cellpadding="1" cellspacing="1" bgcolor="#ececec">
+	<tr>
+		<td width="32" height="22" bgcolor="#e4eff0" class="td_table02">No.</td>
+		<td width="100" bgcolor="#e4eff0"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<td class="td_table02" valign="middle" onclick="javascript:sortTable('ID');">교부번호</td>
+			<td width="7" align="right"><div id="tableDiv"></div></td>
+		</tr>
+		</table></td>
+		<td width="120" bgcolor="#e4eff0" class="td_table02"><table width="120" border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<td class="td_table02" valign="middle" onclick="javascript:sortTable('STARTDATE');">복용시작일</td>
+			<td width="7" align="right"><div id="tableDiv"></div></td>
+		</tr>
+		</table></td>	
+		<td width="80" bgcolor="#e4eff0" class="td_table02"><table width="80" border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<td class="td_table02" valign="middle" onclick="javascript:sortTable('TOTALDAYS');">복용일수</td>
+			<td width="7" align="right"><div id="tableDiv"></div></td>
+		</tr>
+		</table></td>
+		<td width="80" bgcolor="#e4eff0" class="td_table02"><table width="80" border="0" cellspacing="0" cellpadding="0">
+	  	<tr>
+			<td class="td_table02" valign="middle" onclick="javascript:sortTable('STATUS');">복용상태</td>
+			<td width="7" align="right"><div id="tableDiv"></div></td>
+		</tr>
+		</table></td>
+		<td width="200" bgcolor="#e4eff0" class="td_table02"><table width="200" border="0" cellspacing="0" cellpadding="0">
+		<tr>
+			<td class="td_table02" valign="middle" onclick="javascript:sortTable('DISEASE');">&nbsp;<font color="#3c5f84">질병명</font></td>
+			<td width="7" align="right"><div id="tableDiv"></div></td>
+		</tr>
+		</table></td>
+		<td width="140" bgcolor="#e4eff0" class="td_table02">&nbsp;</td> 
+	</tr>
+	
+	
+	<tr>
+		<td height="3" colspan="8" bgcolor="#a7c2bc"></td>
+	</tr>
+	<%
+	String tmpColot = "#FFFFFF";
+	if(prescriptionList != null){
+	for(int i=0;i < prescriptionList.size();i++){
+		if(i % 2 == 0){
+			tmpColot = "#edfaf7";
+		}else{
+			tmpColot = "#FFFFFF";
+		}
+		PrescriptionInfo prescriptionInfo = (PrescriptionInfo) prescriptionList.get(i);
+		%>
+		<tr>
+			<td height="22" align="center" bgcolor='<%=tmpColot%>' class="td_table02"><%=(i + 1) %></td>
+			<td align="center" bgcolor='<%=tmpColot%>' class="td_table02"><a href="javascript:loadModifyPrescription('<%=prescriptionInfo.getId() %>', '<%=prescriptionInfo.getHospital() %>');"><%=prescriptionInfo.getId() %></a></td>
+			<td align="center" bgcolor='<%=tmpColot%>' class="td_table02"><%=prescriptionInfo.getStartDateKor() %></td>
+			<td align="center" bgcolor='<%=tmpColot%>' class="td_table02"><%=prescriptionInfo.getTotalDays() %></td>
+			<td align="center" bgcolor='<%=tmpColot%>' class="td_table02"><%=prescriptionInfo.getStatusKor() %></td>
+			<td align="center" bgcolor='<%=tmpColot%>' class="td_table02"><%=Util.toWebString(prescriptionInfo.getDisease().trim())%></td>
+			<td align="center" bgcolor='<%=tmpColot%>'><table width="100%" border="0" cellspacing="0" cellpadding="0">
+            	<tr>
+            	  <%
+            	  if(prescriptionInfo.getDetailSchedule().equals("1")){ %>
+            	    <td width="67">&nbsp;</td>
+            	  <%}else{%>
+            	    <td width="67" align="right"><a href="javascript:loadModifyPrescription('<%=prescriptionInfo.getId() %>', '<%=prescriptionInfo.getHospital() %>');"><img src="/PromesService/images/common/bt_start.gif" width="67" height="22" border="0" id="Image3" onmouseover="MM_swapImage('Image3','','/PromesService/images/common/bt_start_.gif',1)" onmouseout="MM_swapImgRestore()" /></a></td>
+            	  <%}%>
+	              <td width="5" align="center">&nbsp;</td>
+	              <td width="56" align="left"><a href="javascript:loadPatientDosagePage('<%=prescriptionInfo.getId()%>', '<%=prescriptionInfo.getHospital() %>');"><img src="/PromesService/images/common/bt_internal.gif" width="56" height="22" id="Image6" border="0" onmouseover="MM_swapImage('Image6','','/PromesService/images/common/bt_internal_.gif',1)" onmouseout="MM_swapImgRestore()" /></a></td>
+	            </tr>
+          </table></td>
+		</tr>
+	<%}
+		for(int i = prescriptionList.size(); i < 10;i++){
+			if(i % 2 == 0){
+				tmpColot = "#edfaf7";
+			}else{
+				tmpColot = "#FFFFFF";
+			}%>
+			<tr>
+				<td height="22" align="center" bgcolor='<%=tmpColot%>' class="td_table02"></td>
+				<td align="center" bgcolor='<%=tmpColot%>'>&nbsp;</td>
+				<td align="center" bgcolor='<%=tmpColot%>'>&nbsp;</td>
+				<td align="center" bgcolor='<%=tmpColot%>'>&nbsp;</td>
+				<td align="center" bgcolor='<%=tmpColot%>'>&nbsp;</td>
+				<td align="center" bgcolor='<%=tmpColot%>'>&nbsp;</td>
+				<td align="center" bgcolor='<%=tmpColot%>'>&nbsp;</td>
+			</tr>
+		<%}
+	}else{
+		for(int i=0;i < 10;i++){
+			if(i % 2 == 0){
+				tmpColot = "#edfaf7";
+			}else{
+				tmpColot = "#FFFFFF";
+			}
+			%>
+			<tr>
+				<td height="22" align="center" bgcolor='<%=tmpColot%>' class="td_table02"></td>
+				<td align="center" bgcolor='<%=tmpColot%>'>&nbsp;</td>
+				<td align="center" bgcolor='<%=tmpColot%>'>&nbsp;</td>
+				<td align="center" bgcolor='<%=tmpColot%>'>&nbsp;</td>
+				<td align="center" bgcolor='<%=tmpColot%>'>&nbsp;</td>
+				<td align="center" bgcolor='<%=tmpColot%>'>&nbsp;</td>
+				<td align="center" bgcolor='<%=tmpColot%>'>&nbsp;</td>
+			</tr>
+	<%}}%>
+</table>
+<table width="756" border="0">
+	<tr>
+		<td height="23" align="center" bgcolor="#FFFFFF"><table width="735" border="0" cellspacing="0" cellpadding="0">
+			<tr>
+				<td align="center"><table border="0" cellspacing="0" cellpadding="0">
+					<%
+					if(pageIdx == null){
+						pageIdx = "0";
+						maxPageIdx = "0";
+					}
+					if(Integer.parseInt(pageIdx) == 1){ %>
+						<td align="center"><img src="/PromesService/images/common/icon_04.gif" width="10" height="9" /></td>
+					<%}else{ %>
+						<td align="center"><a href="javascript:changePage('','sub');"><img src="/PromesService/images/common/icon_04.gif" border="0" width="10" height="9" /></a></td>
+					<%} %>
+					<td width="5">
+					</td>
+				<%for(int i = 0;i < Integer.parseInt(maxPageIdx);i++){
+					if(pageIdx.equals(""+(i+1))){%>
+						<td align="center" valign="bottom" width="15" class="td_table11">
+						<font class="#3c5f84"><%=(i+1)%></font>
+					<%}else{%>
+						<td align="center" valign="bottom"  width="10" class="td_table11_">
+						<a href="javascript:changePage('<%=(i+1)%>');"><font color="#3c5f84"><%=(i+1)%></font></a>
+					<%}%>
+					</td>
+					<td width="5">
+					</td>
+				<%}%>
+					<%if(Integer.parseInt(maxPageIdx) == Integer.parseInt(pageIdx)){ %>
+						<td align="center"><img src="/PromesService/images/common/icon_05.gif" width="10" height="9" /></td>
+					<%}else{ %>
+						<td align="center"><a href="javascript:changePage('','add');"><img src="/PromesService/images/common/icon_05.gif" border="0" width="10" height="9" /></a></td>
+					<%} %>
+					
+				</table>
+				</td>
+			</tr>
+		</table></td>
+	</tr>
+</table>
+</form>
+</body>
+</html>

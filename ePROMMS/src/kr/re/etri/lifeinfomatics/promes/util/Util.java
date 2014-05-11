@@ -1,0 +1,427 @@
+package kr.re.etri.lifeinfomatics.promes.util;
+
+import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.ListIterator;
+
+import kr.re.etri.lifeinfomatics.promes.config.Constants;
+import kr.re.etri.lifeinfomatics.promes.util.sort.SortComparator;
+import kr.re.etri.lifeinfomatics.promes.util.sort.SortInterface;
+
+public class Util {
+	public static String toString(String str) {
+		return str;
+//		String outStr = toKor(str);
+//		if (outStr != null) {
+//			if (outStr.trim().equals("")) {
+//				return null;
+//			}
+//			else {
+//				return outStr.trim();
+//			}
+//		}
+//		else {
+//			return null;
+//		}
+	}
+
+	public static String toWebString(String str) {
+		String outStr = str;
+		if (outStr == null) {
+			outStr = "";
+		}
+		if (outStr.equals("null")) {
+			outStr = "";
+		}
+		return outStr;
+	}
+
+	public static String toWeb(String str) {
+		String convStr = null;
+		try {
+			if (str == null) {
+				return null;
+			}
+			// 현재문자열을 8859_1형식으로 읽어내어 KSC5601형식으로 변환
+			convStr = new String(str.getBytes("euc-kr"), "8859_1");
+		} catch (Exception e) {
+		}
+
+		return convStr.trim();
+	}
+
+	public static String toKor(String str) {
+		String convStr = null;
+		try {
+			if (str == null) {
+				return null;
+			}
+			// 현재문자열을 8859_1형식으로 읽어내어 KSC5601형식으로 변환
+			convStr = new String(str.getBytes("8859_1"), "euc-kr");
+		} catch (Exception e) {
+		}
+		return convStr.trim();
+	}
+
+	/**
+	 * Exception Message에서 Class명 제거하고 순수 Message만 반환한다. java.lang.Exception: Already exsited. ==> Already exsited.
+	 * 
+	 * @param errMessage
+	 *        String
+	 * @return String
+	 */
+	public static String getMessage(String errMessage) {
+		if (errMessage != null) {
+			int index = errMessage.indexOf(":");
+			if (index > 0) {
+				errMessage = errMessage.substring(errMessage.indexOf(":") + 1);
+			}
+		}
+		return errMessage;
+	}
+
+	/**
+	 * 문자열 str의 finds[i] 문자열에 해당하는 모든 것을 replces[i]로 치환하는 함수 (모든 i에 대해서)
+	 * 
+	 * @param str
+	 *        String
+	 * @param finds
+	 *        String[]
+	 * @param replaces
+	 *        String[]
+	 * @return String
+	 */
+	public static String replace(String str, String[] finds, String replaces) {
+		for (int i = 0; i < finds.length; i++) {
+			str = replace(str, finds[i], replaces);
+		}
+		return str;
+	}
+
+	/**
+	 * 문자열 str의 finds[i] 문자열에 해당하는 모든 것을 replces[i]로 치환하는 함수 (모든 i에 대해서)
+	 * 
+	 * @param str
+	 *        String
+	 * @param finds
+	 *        String[]
+	 * @param replaces
+	 *        String[]
+	 * @return String
+	 */
+	public static String replace(String str, String finds, String[] replaces) {
+		for (int i = 0; i < replaces.length; i++) {
+			str = replace(str, finds, replaces[i]);
+		}
+		return str;
+	}
+
+	/**
+	 * 문자열 str의 finds[i] 문자열에 해당하는 모든 것을 replces[i]로 치환하는 함수 (모든 i에 대해서)
+	 * 
+	 * @param str
+	 *        String
+	 * @param finds
+	 *        String[]
+	 * @param replaces
+	 *        String[]
+	 * @return String
+	 */
+	public static String replace(String str, String[] finds, String[] replaces) {
+		for (int i = 0; i < finds.length; i++) {
+			str = replace(str, finds[i], replaces[i]);
+		}
+		return str;
+	}
+
+	/**
+	 * 주어진 문자열 str내의 find 문자열 전부를 replace로 대체하는 함수
+	 * 
+	 * @param str
+	 *        String
+	 * @param find
+	 *        String
+	 * @param replace
+	 *        String
+	 * @return String
+	 */
+	public static String replace(String str, String find, String replace) {
+		int offset = str.indexOf(find);
+		if (-1 != offset) {
+			StringBuffer sb = new StringBuffer();
+
+			int findLength = find.length();
+			int fromIdx = 0;
+			while (-1 != offset) {
+				sb.append(str.substring(fromIdx, offset));
+				sb.append(replace);
+
+				fromIdx = offset + findLength;
+				offset = str.indexOf(find, fromIdx);
+			}
+			sb.append(str.substring(fromIdx));
+
+			return sb.toString();
+		}
+		else {
+			return str;
+		}
+	}
+
+	public static ArrayList<String> split(String index, String data) {
+		String[] tmpArr = data.split(index);
+		ArrayList<String> dataList = new ArrayList<String>();
+		for (int i = 0; i < tmpArr.length; i++) {
+			if (tmpArr[i] != null || !tmpArr[i].equals("")) {
+				dataList.add(tmpArr[i]);
+			}
+		}
+		return dataList;
+	}
+
+	/*******************************************************************************************************************************************************************************************************************************************************************************************************
+	 * SQL
+	 ******************************************************************************************************************************************************************************************************************************************************************************************************/
+
+	public static String toSqlStr(String str) {
+		return "'" + str + "'";
+	}
+
+	public static String getSqlStringAnd(String str) {
+		if (str == null || str.equals("null")) {
+			return "'',";
+		}
+		return "'" + str + "', ";
+	}
+
+	public static String getSqlString(String str) {
+		if (str == null || str.equals("null")) {
+			return "''";
+		}
+		return "'" + str + "'";
+	}
+
+	public static String getSqlIntegerAnd(int number) {
+		return number + ", ";
+	}
+
+	public static String getSqlLongAnd(long number) {
+		return number + ", ";
+	}
+
+	public static String getSqlFloatAnd(float number) {
+		return number + ", ";
+	}
+
+	public static String getSqlBooleanAnd(boolean isBoolean) {
+		return String.valueOf(isBoolean) + ", ";
+	}
+
+	public static String getSqlBoolean(boolean isBoolean) {
+		return String.valueOf(isBoolean);
+	}
+
+	/*******************************************************************************************************************************************************************************************************************************************************************************************************
+	 * Time
+	 ******************************************************************************************************************************************************************************************************************************************************************************************************/
+
+	public static String getToday(String format) {
+		Calendar cal = Calendar.getInstance();
+		SimpleDateFormat form1 = new SimpleDateFormat(format);
+		return form1.format(cal.getTime());
+	}
+
+	/**
+	 * ex) 1230 => 12:30
+	 */
+	public static String changeIntToTime(String time) {
+		String result = "";
+		if (time.length() > 0) {
+			if (time.length() == 4) {
+				result += time.substring(0, 2);
+				result += ":";
+			}
+			result += time.substring(2, 4);
+		}
+		return result;
+	}
+
+	public static String chageDate(String date) {
+		if (date != null && !date.equals("")) {
+			String newDate = "";
+			String[] dateArr = date.split("-");
+
+			newDate += dateArr[0] + "년 ";
+			newDate += dateArr[1] + "월 ";
+			newDate += dateArr[2] + "일";
+			return newDate;
+		}
+		return "";
+	}
+
+	public static int getWeek(String date) {
+		if (date != null && !date.equals("")) {
+			Calendar cal = Calendar.getInstance();
+
+			int year = Integer.parseInt(date.substring(0, 4));
+			int month = Integer.parseInt(date.substring(4, 6));
+			int day_of_week = Integer.parseInt(date.substring(6, 8));
+			cal.set(year, month - 1, day_of_week);
+			return cal.get(Calendar.DAY_OF_WEEK);
+		}
+		return -1;
+	}
+
+	/**
+	 * 두 날짜간의 차이
+	 * 
+	 * @param time1
+	 * @param time2
+	 * @return
+	 */
+	public static int getTimeDistance(String time1, String time2) {
+		int startTime = Integer.parseInt(time1);
+		Calendar cal1 = Calendar.getInstance();
+		cal1.set(cal1.get(Calendar.YEAR), cal1.get(Calendar.MONTH), cal1.get(Calendar.DAY_OF_WEEK), startTime / 100, startTime % 100, 0);
+		int endTime = Integer.parseInt(time2);
+		Calendar cal2 = Calendar.getInstance();
+		cal2.set(cal2.get(Calendar.YEAR), cal2.get(Calendar.MONTH), cal2.get(Calendar.DAY_OF_WEEK), endTime / 100, endTime % 100, 0);
+
+		long endMin = cal2.getTime().getTime() - cal1.getTime().getTime();
+
+		endMin = endMin / 60000;
+		return (int) endMin;
+	}
+
+	/**
+	 * 날짜에 분을 더함
+	 * 
+	 * @param time1
+	 * @param num
+	 * @return
+	 */
+	public static String addMinute(String time1, int num) {
+		int startTime = Integer.parseInt(time1);
+		Calendar cal = Calendar.getInstance();
+		cal.set(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_WEEK), startTime / 100, startTime % 100, 0);
+		cal.add(Calendar.MINUTE, num);
+		SimpleDateFormat form1 = new SimpleDateFormat("HHmm");
+		return form1.format(cal.getTime());
+	}
+
+	/**
+	 * 날짜 형식에 따른 Calendar 반환
+	 * 
+	 * @param date
+	 * @param regex
+	 * @return
+	 */
+	public static Calendar getCalendar(String date, String regex) {
+		String[] tmpArr = date.split(regex);
+		if (tmpArr.length > 2) {
+			Calendar cal = Calendar.getInstance();
+			cal.set(Integer.parseInt(tmpArr[0]), Integer.parseInt(tmpArr[1]) - 1, Integer.parseInt(tmpArr[2]));
+			return cal;
+		}
+		return Calendar.getInstance();
+	}
+
+	public static String getFileName(String id, String date) {
+		String fileName = null;
+		int i = 0;
+		File fileDir = new File(Constants.WEB_PATH, "../chart");
+
+		if (!fileDir.exists()) {
+			fileDir.mkdir();
+		}
+
+		while (fileName == null) {
+			String tmpFileName = "chart" + id + "(" + date + i + ").png";
+			File file = new File("tmp", tmpFileName);
+			if (!file.isFile()) {
+				fileName = tmpFileName;
+			}
+			else {
+				i++;
+			}
+		}
+		return fileName;
+	}
+
+	public static String en(String ko) {
+		String new_str = null;
+		try {
+			new_str = new String(ko.getBytes("KSC5601"), "8859_1");
+		} catch (UnsupportedEncodingException ex) {
+			ex.printStackTrace();
+		}
+		return new_str;
+	}
+
+	public static String ko(String en) {
+		String new_str = null;
+		try {
+			try {
+				new_str = new String(en.getBytes("8859_1"), "KSC5601");
+			} catch (UnsupportedEncodingException ex) {
+				ex.printStackTrace();
+			}
+		} catch (NullPointerException e) {
+			new_str = en;
+		}
+		return new_str;
+	}
+
+	public static String getErrorCode(String error) {
+		int idx = error.indexOf("ORA-");
+		String code = error.substring(idx, 9);
+		return code;
+	}
+
+	public static String toLowerCase(String str) {
+		if (str != null && !str.equals("")) {
+			str = str.toLowerCase();
+		}
+		return str;
+	}
+
+	public static String getErrorCode(Exception ex) {
+		return getErrorCode(ex.getMessage());
+
+	}
+	public static <T> void sort(List<T> list, Comparator<? super T> c) {
+        Object[] a = list.toArray();
+        Arrays.sort(a, (Comparator)c);
+        ListIterator i = list.listIterator();
+        for (int j=0; j<a.length; j++) {
+            i.next();
+            i.set(a[j]);
+        }
+    }
+	public static ArrayList<Object> sort(ArrayList sortList, String type, String course) {
+//		if (course.equals("UP")) {
+//			Collections.sort(sortList, new SortComparator(type));
+//		}
+//		else {
+//			Collections.sort(sortList, new SortComparator(type, "DOWN"));
+//		}
+		if (course.equals("UP")) {
+			sort(sortList, new SortComparator(type));
+		}
+		else {
+			sort(sortList, new SortComparator(type, "DOWN"));
+		}
+		return sortList;
+	}
+}

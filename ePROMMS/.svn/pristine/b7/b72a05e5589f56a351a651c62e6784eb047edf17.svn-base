@@ -1,0 +1,23 @@
+################################################################################
+# JDBC Driver
+################################################################################
+#driver=oracle.jdbc.driver.OracleDriver
+driver=com.mysql.jdbc.Driver
+################################################################################
+# Data Base URL
+################################################################################
+#url=jdbc:oracle:thin:@medic.jeyun.com:1521:PROMES
+url=jdbc:mysql://192.168.77.72:3306/DDOT
+#url=jdbc:mysql://localhost:3306/DDOT1
+validationQuery=select 1 
+################################################################################
+# Data Base
+################################################################################
+username=root
+password=rkskekfk
+
+maxActive=10
+maxIdle=10
+maxWait=10000
+defaultAutoCommit=true
+defaultReadOnly=false

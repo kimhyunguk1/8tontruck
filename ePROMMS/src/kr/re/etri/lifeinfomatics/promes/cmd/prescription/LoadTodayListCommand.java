@@ -1,0 +1,247 @@
+package kr.re.etri.lifeinfomatics.promes.cmd.prescription;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.nio.channels.FileChannel;
+import java.util.ArrayList;
+import java.util.Calendar;
+
+import javax.servlet.http.HttpServletRequest;
+
+
+import kr.re.etri.lifeinfomatics.promes.cmd.common.Command;
+import kr.re.etri.lifeinfomatics.promes.cmd.common.CommandException;
+import kr.re.etri.lifeinfomatics.promes.data.Define;
+import kr.re.etri.lifeinfomatics.promes.data.ScheduleInfo;
+import kr.re.etri.lifeinfomatics.promes.db.DBManager;
+import kr.re.etri.lifeinfomatics.promes.util.Log;
+import kr.re.etri.lifeinfomatics.promes.util.Util;
+import kr.re.etri.lifeinfomatics.promes.mgr.ImageSrcManager;
+
+public class LoadTodayListCommand implements Command{
+
+	private String next = "";
+	
+	public LoadTodayListCommand(String next){
+		this.next = next;
+	}
+	
+	
+	public String execute(HttpServletRequest req) throws CommandException 
+	{
+		try
+		{
+    		String userId = req.getParameter("_userId");
+    		userId = Util.toString(userId);
+    		String type = req.getParameter("_type");
+    		String userName= req.getParameter("_userName");
+    		userName = Util.toString(userName);
+    		String searchDate = req.getParameter("_date");
+    		searchDate = Util.toString(searchDate);
+    		
+    		String boxtype = req.getParameter("_boxtype");
+    		boxtype = Util.toString(boxtype);    		
+    		String selecttype = req.getParameter("_selecttype");
+    		selecttype = Util.toString(selecttype);
+    		
+    		String boxtype_index = req.getParameter("_boxtype_index");
+    		boxtype_index = Util.toString(boxtype_index);
+    		String select_index = req.getParameter("_select_index");
+    		select_index = Util.toString(select_index);
+    		
+    		String demoId = req.getParameter("_demoId");
+    		demoId = Util.toString(demoId);
+
+    		String searchStartDate = "";
+    		String searchEndtDate = "";
+    		
+    		Calendar cal = Calendar.getInstance();
+    		
+    		if (searchDate != null && searchDate != "")
+    		{
+    			String temp = "";
+    			temp = searchDate.replace("-", "");
+    			temp = temp.replace("-", "");
+    			temp = temp.replace("-", "");
+    			
+    			searchStartDate = temp.trim() + " 0000";
+    			searchEndtDate = temp.trim() + " 2359";
+    		}
+    		else
+    		{
+    			String year = cal.get(Calendar.YEAR) + "";
+    			String month = (cal.get(Calendar.MONTH) + 1) + "";
+    			String day = cal.get(Calendar.DATE) + "";
+    			
+    			if (month.length() < 2)
+    			{
+    				month = "0" + month;
+    			}
+    			
+    			if (day.length() < 2)
+    			{
+    				day = "0" + day;
+    			}
+    			
+    			searchStartDate = year + month + day + " 0000";
+    			searchEndtDate = year + month + day + " 2359";
+    			
+    			searchDate = year + "-" + month + "-" + day + "";
+    		}
+    
+    		req.setAttribute("searchDate", searchDate);
+    		req.setAttribute("userId", userId);
+    		req.setAttribute("userName", userName);
+    		req.setAttribute("type", type);
+    		/*
+    		String sql = "SELECT MEMBER_ID FROM PRESCRIPTION ";
+
+    		if(userId.equals("Total") || userId.equals("") || userId.equals(null)){
+    			sql += " WHERE PHARMACY not in 'dhong'";
+    		}else    			
+    			sql += " WHERE PHARMACY = " + Util.getSqlString(userId);
+    		
+    		sql += " GROUP BY MEMBER_ID ";
+    		*/    		
+    		String sql = "SELECT A.MEMBER_ID ";
+    		if(selecttype != null){
+    			sql += "FROM (select member_id,min(startdate) minstartdate, status, pharmacy from prescription group by member_id,pharmacy order by member_id) A, MEMBER B, MEDICBOX C ";
+    		}else
+    			sql += "FROM PRESCRIPTION A, MEMBER B, MEDICBOX C ";
+    		
+    		if(userId.equals("Total") || userId.equals("") || userId.equals(null) || userId.equals("admin")){
+    			sql += " WHERE A.PHARMACY not in ('dhong')";
+    		}else    			
+    			sql += " WHERE A.PHARMACY = " + Util.getSqlString(userId);
+    		sql +=" and A.STATUS = 'ON'";
+    		sql +=" and A.MEMBER_ID=B.ID and B.PILLBOXS=C.MEDICBOX_NO ";
+    		sql +=" GROUP BY A.MEMBER_ID";
+    		
+    		Log.out.debug(sql);
+    		
+    		DBManager dbManager = DBManager.getInstance();
+    		ArrayList<ArrayList<Object>> userlist = dbManager.executeQuery(sql);
+    		
+    		sql = "";
+    		
+    		int count = userlist.size();
+    		
+    		ArrayList<ScheduleInfo> scheduleInfoList = new ArrayList<ScheduleInfo>();
+    		
+    		for (int y = 0 ; y < count ; y++)
+    		{
+    			sql = "SELECT (SELECT NAME FROM MEMBER WHERE ID = '" + userlist.get(y).get(0).toString() + "'), PRESCRIPTION_ID, PRESCRIPTION_HOSPITAL, ALARMSTART, ALARMEND, TAKENORDER, CONTAINERNO, TAKENSTATUS, TAKENTIME,(SELECT PILLBOXS FROM MEMBER WHERE ID = '" + userlist.get(y).get(0).toString() + "')";
+    			sql += " FROM SCHEDULES_" + userlist.get(y).get(0).toString();
+        		sql += " WHERE ALARMSTART >= DATE_FORMAT(STR_TO_DATE('" + searchStartDate + "', '%Y%m%d%H%i'), '%Y%m%d %H%i') ";
+        		sql += "AND ALARMSTART <= DATE_FORMAT(STR_TO_DATE('" + searchEndtDate + "' , '%Y%m%d%H%i'), '%Y%m%d %H%i') ";
+        		
+        		Log.out.debug(sql);
+        		
+        		ArrayList<ArrayList<Object>> userPrescriptionlist = dbManager.executeQuery(sql);
+        		
+        		for (ArrayList<Object> rows : userPrescriptionlist) 
+        		{
+        			int i = 0;
+        			ScheduleInfo scheduleInfo = new ScheduleInfo();
+        			scheduleInfo.setId(userlist.get(y).get(0).toString());
+        			scheduleInfo.setUserName(rows.get(i++).toString());
+        			scheduleInfo.setPrescription_id(rows.get(i++).toString());
+        			scheduleInfo.setHospital(rows.get(i++).toString());
+        			scheduleInfo.setAlarmStart(rows.get(i++).toString());
+        			scheduleInfo.setAlarmEnd(rows.get(i++).toString());
+        			scheduleInfo.setTakenorder(rows.get(i++).toString());
+        			scheduleInfo.setContainerno(rows.get(i++).toString());
+
+        			String status = rows.get(i++).toString();
+
+        			if (Define.checkTakenSatus(status)) {
+        				scheduleInfo.setTakenStatus(status);
+        			}
+        			else {
+        				scheduleInfo.setTakenStatus(Define.TAKEN_SATUS_UNTAKEN);
+        			}
+
+        			scheduleInfo.setTakenTime(rows.get(i++).toString());
+        			scheduleInfo.setPillboxId(rows.get(i++).toString());
+        			
+        			
+        			/////////
+        			// gif 이미지 검사
+        			
+        			// scheduleInfo.getTakenStatus()      			
+        			
+        			String filename = scheduleInfo.getPillboxId() +"_" + scheduleInfo.getAlarmStart().substring(0, 8) + ".gif";
+        			filename = Util.toString(filename);		
+        			
+        			
+        			// 테스트 용으로 아래와 같은 경로 사용중
+        			// 실제 사용시 webcontent 폴더로 경로 맞춰줄것
+        			File fi = new File("c:/images/"+filename);
+//        			String path = System.getProperty("user.dir");
+//        			File path2 = new File(".");
+//        			String path3 = (String) req.getAttribute("javax.servlet.forward.request_uri");
+        			String path = req.getSession().getServletContext().getRealPath("");
+        			
+        			File fo = new File(path + "/images/takenImage/"+filename);
+        			
+        			if(fi.isFile()){
+        				if(fo.isFile()){
+        					scheduleInfo.setGifImage("/PromesService/images/takenImage/"+filename);
+        				}else{
+        	    			try {
+        	    				FileInputStream fis = new FileInputStream(fi);
+        	    				FileOutputStream fos = new FileOutputStream(fo);
+        	    				
+        	    				FileChannel fcin = fis.getChannel();
+        	    				FileChannel fcout = fos.getChannel();
+        	    				long size=0;
+        	    				size=fcin.size();
+        	    				fcin.transferTo(0, size, fcout);
+        	    				
+        	    				fcout.close();
+        	    				fcin.close();
+        	    				fis.close();
+        	    				fos.close();			
+        	    				
+        	    				scheduleInfo.setGifImage("/PromesService/images/takenImage/"+filename);
+        	    			
+        	    			} catch(Exception e) {
+        	    				// TODO Auto-generated catch block
+        	    				e.printStackTrace();
+        	    				return null;
+        	    			}
+        				}
+        			}else{
+        				scheduleInfo.setGifImage("");
+        			}
+        			
+        			scheduleInfoList.add(scheduleInfo);
+
+        			//ArrayList<Object> aa = new ArrayList<Object>();
+        			//ArrayList<ArrayList<Object>> bb = new ArrayList<ArrayList<Object>>();
+        			//bb.add(aa);
+        			
+        		}
+    		}
+    		req.setAttribute("scheduleInfoList", scheduleInfoList);
+    		req.setAttribute("boxtype_index", boxtype_index);    		
+    		req.setAttribute("select_index", select_index);
+    		
+    		if(type.equals(Define.USER_PHARMACIST) || type.equals(Define.USER_DOCTOR)|| type.equals(Define.USER_INCHARGE)|| type.equals(Define.USER_ADMIN))
+    		{    		
+    			return "home/prescription/todayPrescriptionList.jsp";     			
+    		}
+    		else
+    		{
+    			return "home/patient/searchPrescription.jsp";			
+    		}
+		}
+		catch (Exception ex) 
+		{
+			Log.out.error(ex, ex);
+			req.setAttribute("message", ex.getMessage());
+			return "home/error.jsp";
+		}
+	}
+}

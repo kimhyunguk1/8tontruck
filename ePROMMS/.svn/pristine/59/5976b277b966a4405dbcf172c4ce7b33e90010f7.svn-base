@@ -1,0 +1,148 @@
+package kr.re.etri.lifeinfomatics.promes.cmd.prescription;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Hashtable;
+
+import javax.servlet.http.HttpServletRequest;
+
+import kr.re.etri.lifeinfomatics.promes.cmd.common.Command;
+import kr.re.etri.lifeinfomatics.promes.cmd.common.CommandException;
+import kr.re.etri.lifeinfomatics.promes.data.Define;
+import kr.re.etri.lifeinfomatics.promes.data.PrescriptionInfo;
+import kr.re.etri.lifeinfomatics.promes.mgr.PrescriptionManager;
+import kr.re.etri.lifeinfomatics.promes.util.Log;
+import kr.re.etri.lifeinfomatics.promes.util.Util;
+
+public class SearchPrescriptionCommand implements Command {
+
+	private String next = "";
+
+	public SearchPrescriptionCommand(String next) {
+		this.next = next;
+	}
+
+	public String execute(HttpServletRequest req) throws CommandException {
+		try {
+			
+			Calendar calendar = Calendar.getInstance();
+			
+			String loginId = req.getParameter("_loginId");
+			loginId = Util.toString(loginId);
+			String boxtype = req.getParameter("_boxtype");
+			boxtype = Util.toString(boxtype);
+			String type = req.getParameter("_type");
+			String id = req.getParameter("_id");
+			id = Util.toString(id);
+			String name = req.getParameter("_name");
+			String sortType = req.getParameter("_sortType");
+			String sortCourse = req.getParameter("_sortCourse");
+
+			if (name != null && !name.equals("")) {
+				name = Util.toString(name.trim());
+			}
+			String prescriptionId = req.getParameter("_prescriptionId");
+			String startDate = req.getParameter("_startDate");
+			if (startDate != null && !startDate.equals("")) {
+				startDate = Util.toString(startDate);
+				startDate = startDate.replaceAll("년 |월 ", "-");
+				startDate = startDate.replaceAll("일", "");
+			}
+			String endDate = req.getParameter("_endDate");
+			if (endDate != null && !endDate.equals("")) {
+				endDate = Util.toString(endDate.trim());
+				endDate = endDate.replaceAll("년 |월 ", "-");
+				endDate = endDate.replaceAll("일", "");
+			}
+			String takenSatus = req.getParameter("_takenSatus");
+			String pillBoxId = req.getParameter("_pillBoxId");
+			String disease = req.getParameter("_disease");
+
+			String pageIdx = req.getParameter("_pageIdx");
+			
+			String searchDate = req.getParameter("_searchDate");
+			searchDate = Util.toString(searchDate);
+			if (searchDate == null || searchDate.equals("")) {
+				searchDate = Integer.toString(calendar.get(Calendar.YEAR));
+				if(Integer.toString(calendar.get(Calendar.MONTH)+1).length()<2){
+					searchDate += "0"+Integer.toString(calendar.get(Calendar.MONTH)+1);
+				}else{
+					searchDate += Integer.toString(calendar.get(Calendar.MONTH)+1);
+				}
+				if(Integer.toString(calendar.get(Calendar.DAY_OF_MONTH)).length() <2){
+					searchDate += "0"+Integer.toString(calendar.get(Calendar.DAY_OF_MONTH));
+				}else{
+					searchDate += Integer.toString(calendar.get(Calendar.DAY_OF_MONTH));
+				}
+				
+			}else{
+				
+				searchDate = searchDate.replace("년", "");
+				searchDate = searchDate.replace("월", "");
+				searchDate = searchDate.replace("일", "");
+				searchDate = searchDate.trim();
+			}
+			if (pageIdx == null || pageIdx.equals("")) {
+				pageIdx = "1";
+			}
+			int pageNum = Integer.parseInt(pageIdx);
+
+			ArrayList<PrescriptionInfo> tmpPrescriptionList = new ArrayList<PrescriptionInfo>();
+			if (type.equals(Define.USER_PATIENT)) {
+				tmpPrescriptionList = PrescriptionManager.getInstance().getPrescriptionList(id, name, prescriptionId, startDate, endDate, takenSatus, pillBoxId, disease, null,null,null);
+			}
+			else {
+				tmpPrescriptionList = PrescriptionManager.getInstance().getPrescriptionList(id, name, prescriptionId, startDate, endDate, takenSatus, pillBoxId, disease, loginId,boxtype,searchDate);
+			}
+//			tmpPrescriptionList.addAll(tmpPrescriptionList);
+//			tmpPrescriptionList.addAll(tmpPrescriptionList);
+//			tmpPrescriptionList.addAll(tmpPrescriptionList);
+//			tmpPrescriptionList.addAll(tmpPrescriptionList);
+			
+			ArrayList<Object> objList = new ArrayList<Object>();
+			if (sortType != null && !sortType.equals("")) {
+				objList = Util.sort(tmpPrescriptionList, sortType, sortCourse);
+			}
+			else {
+				for (PrescriptionInfo prescriptionInfo : tmpPrescriptionList) {
+					objList.add(prescriptionInfo);
+				}
+			}
+
+			int maxPageIdx = (objList.size() / 10) + 1;
+			int num = (pageNum - 1) * 10;
+			int maxNum = 0;
+			if (maxPageIdx > pageNum) {
+				maxNum = num + 10;
+			}
+			else {
+				maxNum = objList.size();
+			}
+			ArrayList<PrescriptionInfo> prescriptionList = new ArrayList<PrescriptionInfo>();
+			for (int i = num; i < maxNum; i++) {
+				prescriptionList.add((PrescriptionInfo) objList.get(i));
+			}
+
+			req.setAttribute("prescriptionList", prescriptionList);
+			req.setAttribute("userName", name);
+			req.setAttribute("userId", id);
+			req.setAttribute("pageIdx", pageIdx);
+			req.setAttribute("maxPageIdx", String.valueOf(maxPageIdx));
+			req.setAttribute("sortType", sortType);
+			req.setAttribute("sortCourse", sortCourse);
+			
+			if (type.equals(Define.USER_PHARMACIST) || type.equals(Define.USER_DOCTOR)|| type.equals(Define.USER_INCHARGE) || type.equals(Define.USER_ADMIN)) {
+				return "home/prescription/prescriptionList.jsp";
+			}
+			else {
+				req.setAttribute("prescriptionId", prescriptionId);
+				return "home/patient/prescriptionList.jsp";
+			}
+		} catch (Exception ex) {
+			Log.out.error(ex, ex);
+			req.setAttribute("message", ex.getMessage());
+			return "home/error.jsp";
+		}
+	}
+}
